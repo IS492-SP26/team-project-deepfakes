@@ -31,6 +31,7 @@ Access structured metadata (model used, source platform, takedown time).
 - AI Incident Database (AIID): Extremely broad, lacks specific taxonomy for NCEI, limited technical metadata
 - MIT AI Incident Tracker & Risk Repository: focuses on harm categories rather than tech aspects such as how incidents are technically created or spread
 - StopNCII.org: vital tool for victims to remove images, but does not provide a public research repository of how incidents occur
+- AI Harm Taxonomy (Abercrombie et al., 2024): Structured classification of AI-related social, psychological, and systemic harm, but not a technical taxonomy
 
 -> Sentinel provides the specific technical taxonomy (model type, bypass method) and a dynamic, self-updating infrastructure focused exclusively on NCEI.
 
