@@ -21,6 +21,16 @@
 * **Focus:** The transition from "Incident Logging" to "Actionable Defense."
 * **Feedback:** "I expect a 'result' to be a technical signature I can use to update my filters, but all I get is a confirmation of deletion. There is a massive delay between seeing an attack and actually having the data needed to block the method of that attack across the whole platform."
 * **Identified Gap:** **Actionability Gap.** Existing platforms focus on content-takedown (reactive) rather than threat-modeling (proactive).
+
+### Interview 5 - Luke: Accuracy & Reliability (w/ Sammy)
+* **Focus:** The impact of environmental noise (compression/blur) on verification.
+* **Feedback:** "When I try to verify a reported NCEI incident from a social media grab, standard detectors often flip-flop their scores. The compression 'washes away' the microscopic artifacts the model is looking for, making the result feel like a coin toss."
+* **Identified Gap:** **Environmental Sensitivity.** Current high-fidelity detection tools are optimized for raw lab data but fail significantly in the 'dirty' data environments of real-world social media where NCEI often spreads.
+
+### Interview 6 - Luke: UX Friction & Actionability (w/ Sage)
+* **Focus:** Moving from "Detection Score" to "Structured Metadata."
+* **Feedback:** "Even if a tool tells me there is a 98% chance an image is a deepfake, it doesn't tell me *why* or *how*. To fill out our Sentinel taxonomy, I still have to manually hunt for whether it was a specific model bypass or a generative exploit."
+* **Identified Gap:** **Contextual Blindness.** Existing forensic tools provide a binary output but fail to generate the structured, taxonomy-aligned technical intelligence required for proactive defense.
 ---
 
 ## Opportunity Framing
