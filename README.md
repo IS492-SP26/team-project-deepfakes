@@ -3,6 +3,7 @@
 Team Members: Sage Kim, Sammy Haskel, Qiming Li, Yu-Chen (Will) Su
 
 C1 Presentation Slides: https://docs.google.com/presentation/d/1UAMayyEOC9KOtaEU0_4PciWFNgHsU4878PbyfkjuloU/edit?usp=sharing
+CP 2 Presentation Slides: https://docs.google.com/presentation/d/1Qx6qtaJVppkF2ot-cQilQW0tkhdxkdwAhq93jt21rJQ/edit?usp=sharing
 
 ### 🚨 Problem Statement:
 
