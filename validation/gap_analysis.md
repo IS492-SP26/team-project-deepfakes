@@ -32,15 +32,15 @@
 * **Feedback:** "Even if a tool tells me there is a 98% chance an image is a deepfake, it doesn't tell me *why* or *how*. To fill out our Sentinel taxonomy, I still have to manually hunt for whether it was a specific model bypass or a generative exploit."
 * **Identified Gap:** **Contextual Blindness.** Existing forensic tools provide a binary output but fail to generate the structured, taxonomy-aligned technical intelligence required for proactive defense.
 
-### Interview 7 - Sage: Research Workflow & Data Structuring (w/ Luke)
+### Interview 7 - Sage: Research Visibility & Knowledge Sharing (w/ Luke)
 * **Focus:** Communicating technical findings across teams.
 * **Feedback:** "Even when we document incidents carefully in our database, the insights are hard to share with others. Researchers, journalists, and policymakers often cannot easily see patterns across incidents."
-* **Identified Gap:** **Unstructured-to-Structured Bottleneck.** Existing tools store incident data but fail to surface patterns and insights in ways that support broader awareness and decision-making.
+* **Identified Gap:** **Insight Accessibility Gap.** Existing tools store incident data but fail to surface patterns and insights in ways that support broader awareness and decision-making.
 
-### Interview 8 - Sage: Research Visibility & Knowledge Sharing (w/ Will)
-* **Focus:** Moving from "Detection Score" to "Structured Metadata."
-* **Feedback:** "Even if a tool tells me there is a 98% chance an image is a deepfake, it doesn't tell me *why* or *how*. To fill out our Sentinel taxonomy, I still have to manually hunt for whether it was a specific model bypass or a generative exploit."
-* **Identified Gap:** **Contextual Blindness.** Existing forensic tools provide a binary output but fail to generate the structured, taxonomy-aligned technical intelligence required for proactive defense.
+### Interview 8 - Sage: Research Workflow & Data Structuring (w/ Will)
+* **Focus:** Translating qualitative incidents into structured datasets
+* **Feedback:** "Most incidents are reported as long narrative news articles or scattered social media posts. To use them in our taxonomy, I have to manually read everything and extract fields like platform, threat vector, and model. It’s extremely time-consuming."
+* **Identified Gap:** **Unstructured-to-Structured Bottleneck.** There is no tool that automatically converts narrative incident reports into structured, taxonomy-ready intelligence.
 ---
 
 ## Opportunity Framing
