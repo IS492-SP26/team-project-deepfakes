@@ -118,3 +118,11 @@ bash scripts/dev.sh
 ## Production Deployment
 
 See `docs/deployment.md` for Render / Railway / Vercel deployment guides.
+
+## Known Setup Issue — PostCSS
+If you see a `Cannot find module 'tailwindcss'` error when running the frontend,
+delete the conflicting PostCSS config in the parent folder:
+
+    rm "Sentinel Application/postcss.config.mjs"
+
+Then re-run `npm run dev`.
