@@ -12,27 +12,30 @@
     "lint": "eslint src --ext ts,tsx"
   },
   "dependencies": {
+    "autoprefixer": "^10.4.27",
+    "axios": "^1.7.7",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^11.5.4",
+    "lucide-react": "^0.439.0",
+    "postcss": "^8.5.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.0",
-    "axios": "^1.7.7",
-    "recharts": "^2.12.7",
-    "framer-motion": "^11.5.4",
     "react-dropzone": "^14.2.3",
-    "lucide-react": "^0.439.0",
-    "date-fns": "^4.1.0",
-    "clsx": "^2.1.1"
+    "react-router-dom": "^6.26.0",
+    "recharts": "^2.12.7",
+    "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^16.0.1",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "eslint": "^9.9.0",
+    "jsdom": "^25.0.0",
     "typescript": "^5.5.3",
     "vite": "^5.4.2",
-    "vitest": "^2.0.5",
-    "@testing-library/react": "^16.0.1",
-    "@testing-library/jest-dom": "^6.5.0",
-    "jsdom": "^25.0.0",
-    "eslint": "^9.9.0"
+    "vitest": "^2.0.5"
   }
 }
