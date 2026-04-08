@@ -1,0 +1,48 @@
+services:
+  # Backend — FastAPI deepfake analysis API
+  - type: web
+    name: sentinel-backend
+    runtime: python
+    rootDir: Sentinel Application/app/backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false          # Set in Render dashboard
+      - key: GROQ_API_KEY
+        sync: false
+      - key: DETECTION_API_KEY
+        sync: false
+      - key: VIRUSTOTAL_API_KEY
+        sync: false
+      - key: GOOGLE_SAFE_BROWSING_KEY
+        sync: false
+      - key: DATABASE_URL
+        value: sqlite:///./data/sentinel.db
+      - key: LOG_TO_FILE
+        value: "true"
+      - key: ALLOWED_ORIGINS
+        fromService:
+          name: sentinel-frontend
+          type: web
+          property: host
+          prefix: https://
+    disk:
+      name: sentinel-data
+      mountPath: /app/data
+      sizeGB: 1
+
+  # Frontend — Vite/React static site
+  - type: web
+    name: sentinel-frontend
+    runtime: node
+    rootDir: Sentinel Application/app/frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          name: sentinel-backend
+          type: web
+          property: host
+          prefix: https://
