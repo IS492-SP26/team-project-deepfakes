@@ -25,6 +25,11 @@ def init_db():
             narrative TEXT,
             file_hash TEXT,
             processing_time_ms INTEGER,
+            taxonomy_entity TEXT,
+            taxonomy_intent TEXT,
+            taxonomy_timing TEXT,
+            taxonomy_confidence REAL,
+            taxonomy_rationale TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         );
 
@@ -56,10 +61,12 @@ def get_db():
 def save_analysis(result: dict, file_hash: str = None):
     try:
         conn = get_db()
+        taxonomy = result.get("taxonomy", {})
         conn.execute("""
             INSERT OR REPLACE INTO analyses
-            (analysis_id, verdict, confidence, threat_level, metadata, enrichment, narrative, file_hash, processing_time_ms)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (analysis_id, verdict, confidence, threat_level, metadata, enrichment, narrative, file_hash, processing_time_ms,
+             taxonomy_entity, taxonomy_intent, taxonomy_timing, taxonomy_confidence, taxonomy_rationale)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             result["analysis_id"],
             result["verdict"],
@@ -70,6 +77,11 @@ def save_analysis(result: dict, file_hash: str = None):
             result.get("narrative", ""),
             file_hash,
             result.get("processing_time_ms", 0),
+            taxonomy.get("entity"),
+            taxonomy.get("intent"),
+            taxonomy.get("timing"),
+            taxonomy.get("confidence"),
+            taxonomy.get("rationale"),
         ))
         conn.commit()
     except Exception as e:

@@ -46,8 +46,8 @@ export default function IngestionPage() {
             <div className="flex items-start gap-3 rounded-lg border border-border/50 bg-muted/30 p-3">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-yellow-500" />
               <p className="text-xs text-muted-foreground">
-                Sentinel will simulate an AI-powered extraction pipeline. In production,
-                this would connect to an LLM for structured entity extraction.
+                Sentinel uses AI-powered extraction and MIT Causal Taxonomy classification.
+                Results should be reviewed before archival.
               </p>
             </div>
             <SubmitButton label="Run Extraction" icon="zap" />

@@ -94,6 +94,9 @@ export default function Reports() {
                 <th>Verdict</th>
                 <th>Confidence</th>
                 <th>Threat Level</th>
+                <th>Entity</th>
+                <th>Intent</th>
+                <th>Timing</th>
                 <th>Date</th>
                 <th>Export</th>
               </tr>
@@ -101,7 +104,7 @@ export default function Reports() {
             <tbody>
               {reports.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: "32px 0", color: "var(--text-muted)" }}
+                  <td colSpan={9} style={{ textAlign: "center", padding: "32px 0", color: "var(--text-muted)" }}
                     data-testid="no-results-message">
                     No reports found
                   </td>
@@ -112,6 +115,9 @@ export default function Reports() {
                   <td><span className={`badge badge-${r.verdict}`}>{r.verdict?.replace(/_/g, " ")}</span></td>
                   <td style={{ fontFamily: "var(--font-mono)" }}>{Math.round((r.confidence ?? 0) * 100)}%</td>
                   <td><span className={`badge badge-${r.threat_level}`}>{r.threat_level}</span></td>
+                  <td style={{ fontSize: 11 }}>{r.taxonomy_entity || "—"}</td>
+                  <td style={{ fontSize: 11 }}>{r.taxonomy_intent || "—"}</td>
+                  <td style={{ fontSize: 11 }}>{r.taxonomy_timing || "—"}</td>
                   <td>{new Date(r.created_at).toLocaleDateString()}</td>
                   <td>
                     <button

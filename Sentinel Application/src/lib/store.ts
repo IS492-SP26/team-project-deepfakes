@@ -1,3 +1,16 @@
+export type TaxonomyEntity = "AI" | "Human" | "Other";
+export type TaxonomyIntent = "Intentional" | "Unintentional" | "Other";
+export type TaxonomyTiming = "Pre-deployment" | "Post-deployment" | "Other";
+
+export interface CausalTaxonomy {
+  entity: TaxonomyEntity;
+  intent: TaxonomyIntent;
+  timing: TaxonomyTiming;
+  confidence: number;
+  rationale: string;
+  source: "ai" | "manual";
+}
+
 export interface Incident {
   id: string;
   rawText: string;
@@ -8,6 +21,7 @@ export interface Incident {
   timestamp: string;
   indicators: string[];
   status: "pending" | "approved";
+  taxonomy: CausalTaxonomy;
 }
 
 const incidents: Incident[] = [];
@@ -28,6 +42,17 @@ export function approveIncident(id: string): Incident | undefined {
   const incident = incidents.find((i) => i.id === id);
   if (incident) {
     incident.status = "approved";
+  }
+  return incident;
+}
+
+export function updateIncidentTaxonomy(
+  id: string,
+  taxonomy: Partial<CausalTaxonomy>
+): Incident | undefined {
+  const incident = incidents.find((i) => i.id === id);
+  if (incident) {
+    incident.taxonomy = { ...incident.taxonomy, ...taxonomy, source: "manual" };
   }
   return incident;
 }
