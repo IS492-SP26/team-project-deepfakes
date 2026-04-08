@@ -27,7 +27,8 @@ flowchart TB
         Detection[Detection Service\nHive Moderation API]
         Metadata[Metadata Extractor\nEXIF / ffprobe]
         Enrichment[Threat Enrichment\nVirusTotal + Safe Browsing]
-        Narrative[Claude Analyst\nNarrative Generator]
+        Narrative[AI Analyst\nNarrative Generator]
+        Taxonomy[MIT Causal Taxonomy\nClassifier]
     end
 
     subgraph Storage["💾 Storage"]
@@ -40,6 +41,7 @@ flowchart TB
         VT[VirusTotal]
         GSB[Google Safe Browsing]
         Anthropic[Anthropic Claude API]
+        GroqAPI[Groq Llama API]
     end
 
     UI -->|Upload file / URL| Router
@@ -54,11 +56,15 @@ flowchart TB
     AnalyzeEndpoint --> Metadata
     AnalyzeEndpoint --> Enrichment
     AnalyzeEndpoint --> Narrative
+    AnalyzeEndpoint --> Taxonomy
 
     Detection -->|API call| HiveAPI
     Enrichment -->|Hash lookup| VT
     Enrichment -->|URL check| GSB
     Narrative -->|Prompt + results| Anthropic
+    Narrative -->|Prompt + results| GroqAPI
+    Taxonomy -->|Classify| Anthropic
+    Taxonomy -->|Classify| GroqAPI
 
     AnalyzeEndpoint -->|Save result| SQLite
     Router -->|Log events| Logs
@@ -74,15 +80,18 @@ flowchart TB
 - **URLSubmit** — URL-based submission form
 - **ThreatCard** — Verdict display with confidence ring and threat level badge
 - **MetadataPanel** — Collapsible EXIF/technical metadata viewer
-- **NarrativePanel** — Claude-generated analyst summary
-- **Dashboard** — Aggregate stats, recent reports, threat level chart
-- **ReportsTable** — Searchable/filterable history of all analyses
+- **NarrativePanel** — AI-generated analyst summary
+- **TaxonomyPanel** — MIT Causal Taxonomy display (Entity, Intent, Timing) with confidence bar
+- **ModelSelector** — Toggle between Claude (Anthropic) and Llama 3 (Groq) for AI classification
+- **Dashboard** — Aggregate stats, recent reports, threat level chart, taxonomy columns
+- **ReportsTable** — Searchable/filterable history of all analyses with taxonomy data
 
 ### Backend (FastAPI)
 | Route | Method | Description |
 |-------|--------|-------------|
 | `/api/analyze/file` | POST | Upload & analyze media file |
 | `/api/analyze/url` | POST | Submit URL for analysis |
+| `/api/analyze/models` | GET | List available AI models (Claude, Llama) |
 | `/api/analyze/{id}` | GET | Retrieve analysis by ID |
 | `/api/reports/` | GET | List all reports (paginated) |
 | `/api/reports/stats` | GET | Dashboard statistics |
@@ -96,7 +105,7 @@ flowchart TB
 | `detection.py` | Deepfake scoring | Hive Moderation API |
 | `metadata.py` | Technical forensics | PIL, mutagen, ffprobe |
 | `enrichment.py` | Threat intel | VirusTotal, Google Safe Browsing |
-| `routers/analyze.py` | Orchestration + narrative | Anthropic Claude |
+| `routers/analyze.py` | Orchestration + narrative + taxonomy | Anthropic Claude / Groq Llama |
 
 ---
 
@@ -114,13 +123,15 @@ SHA-256 hash computed (no PII stored)
     ↓
 Enrichment (hash lookup, URL reputation)
     ↓
-Claude generates analyst narrative
+AI generates analyst narrative (Claude or Llama)
     ↓
-Result saved to SQLite (async)
+MIT Causal Taxonomy classification (Entity, Intent, Timing)
+    ↓
+Result saved to SQLite (async, includes taxonomy fields)
     ↓
 JSON response returned to client
     ↓
-UI renders ThreatCard + Metadata + Narrative
+UI renders ThreatCard + Metadata + Narrative + TaxonomyPanel
 ```
 
 ---

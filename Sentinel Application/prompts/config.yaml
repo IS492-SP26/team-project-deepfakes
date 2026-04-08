@@ -11,6 +11,26 @@ models:
     version: "1.2"
     updated: "2026-04-01"
 
+  taxonomy_classification:
+    description: "MIT AI Risk Repository Causal Taxonomy classifier"
+    providers:
+      claude:
+        provider: anthropic
+        model: claude-sonnet-4-20250514
+        max_tokens: 256
+        temperature: 0.1
+      llama:
+        provider: groq
+        model: llama-3.3-70b-versatile
+        max_tokens: 256
+    dimensions:
+      entity: ["AI", "Human", "Other"]
+      intent: ["Intentional", "Unintentional", "Other"]
+      timing: ["Pre-deployment", "Post-deployment", "Other"]
+    output_format: "JSON with entity, intent, timing, confidence, rationale"
+    version: "1.0"
+    updated: "2026-04-08"
+
   # Future: local detection model
   # deepfake_classifier:
   #   provider: local

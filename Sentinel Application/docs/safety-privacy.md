@@ -13,6 +13,8 @@
 | User identity | ❌ N/A | No accounts required in base mode |
 | Submitted URLs | ❌ Never raw | Only domain reputation result stored |
 | Analyst narrative | ✅ Yes | Contains no PII per system prompt instructions |
+| Taxonomy rationale | ✅ Yes | AI-generated explanation of classification, no PII |
+| AI model selection | ✅ Yes | Which model (Claude/Llama) was used for classification |
 
 ### EXIF Stripping
 The following EXIF fields are explicitly removed before any storage or logging:
@@ -64,6 +66,23 @@ Rate limit hits are logged (with hashed IPs) and return `HTTP 429` with `Retry-A
 - System prompt explicitly instructs Claude: never identify or speculate on depicted individuals
 - Analyst narrative uses clinical language ("person depicted", not names or descriptors)
 - No facial recognition or identity matching is performed
+
+---
+
+## Multi-Model Security
+
+### API Key Handling
+Sentinel supports multiple AI providers (Anthropic Claude, Groq Llama). Each provider's API key is:
+- Stored in `.env` (gitignored, never committed)
+- Loaded server-side only via `load_dotenv()` — never exposed to the frontend
+- Validated at runtime — if a key is missing, the model shows as "unavailable" in the UI
+
+### Taxonomy Classification Security
+- The same structured system prompt is used across all providers (Claude and Llama)
+- Taxonomy output is validated against strict allowlists (Entity, Intent, Timing values)
+- Invalid responses from any model trigger a safe fallback ("Other/Other/Other")
+- Confidence scores are clamped to 0.0–1.0 to prevent out-of-range values
+- User-supplied context is never injected into the system prompt — it is passed as structured user-turn text
 
 ---
 
