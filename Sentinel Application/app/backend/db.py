@@ -8,6 +8,13 @@ from datetime import datetime
 logger = logging.getLogger("sentinel.db")
 
 DB_PATH = os.getenv("DATABASE_URL", "sqlite:///./data/sentinel.db").replace("sqlite:///", "")
+REQUIRED_ANALYSIS_COLUMNS = {
+    "taxonomy_entity": "TEXT",
+    "taxonomy_intent": "TEXT",
+    "taxonomy_timing": "TEXT",
+    "taxonomy_confidence": "REAL",
+    "taxonomy_rationale": "TEXT",
+}
 
 
 def init_db():
@@ -48,6 +55,7 @@ def init_db():
             PRIMARY KEY (ip_address, endpoint, window_start)
         );
     """)
+    _migrate_analyses_schema(conn)
     conn.commit()
     logger.info(f"Database initialized at {DB_PATH}")
 
@@ -56,6 +64,17 @@ def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def _migrate_analyses_schema(conn: sqlite3.Connection):
+    existing_columns = {
+        row["name"]
+        for row in conn.execute("PRAGMA table_info(analyses)").fetchall()
+    }
+    for column_name, column_type in REQUIRED_ANALYSIS_COLUMNS.items():
+        if column_name not in existing_columns:
+            conn.execute(f"ALTER TABLE analyses ADD COLUMN {column_name} {column_type}")
+            logger.info(f"Added missing analyses column: {column_name}")
 
 
 def save_analysis(result: dict, file_hash: str = None):
