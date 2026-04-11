@@ -2,16 +2,15 @@
 
 Team Members: Sage Kim, Sammy Haskel, Qiming Li, Yu-Chen (Will) Su
 
-C1 Presentation Slides: https://docs.google.com/presentation/d/1UAMayyEOC9KOtaEU0_4PciWFNgHsU4878PbyfkjuloU/edit?usp=sharing
-CP 2 Presentation Slides: 
-https://docs.google.com/presentation/d/1Qx6qtaJVppkF2ot-cQilQW0tkhdxkdwAhq93jt21rJQ/edit?usp=sharing
-CP 3 Presentation Slides:
-https://docs.google.com/presentation/d/1GdAlYfoQqglexiiz7_u_sErxAKJcYAJ7XZ4gpf7qvaQ/edit?usp=sharing
+C1 Presentation Slides: https://docs.google.com/presentation/d/1UAMayyEOC9KOtaEU0_4PciWFNgHsU4878PbyfkjuloU/edit?usp=sharing   
+CP 2 Presentation Slides:   
+https://docs.google.com/presentation/d/1Qx6qtaJVppkF2ot-cQilQW0tkhdxkdwAhq93jt21rJQ/edit?usp=sharing   
+CP 3 Presentation Slides:   
+https://docs.google.com/presentation/d/1GdAlYfoQqglexiiz7_u_sErxAKJcYAJ7XZ4gpf7qvaQ/edit?usp=sharing   
 
-Deployment New Version Website Link:
-https://willsu42-extended-team-project-deep.vercel.app
-(based on branch Taxonomy-AI-models)
-
+Deployment New Version Website Link:   
+https://willsu42-extended-team-project-deep.vercel.app   
+(based on branch Taxonomy-AI-models, merge will be done after verification)   
 ### 🚨 Problem Statement:
 
 The democratization of generative AI has led to a surge in Non-Consensual Explicit Imagery (NCEI). Current safety frameworks are reactive, often failing to track the specific "how" behind these attacks. Victims and researchers lack a centralized, structured repository that logs how platform guardrails (like those of X/Grok) are bypassed, the specific "nudify" tools being used, and the legal precedents set in response.
