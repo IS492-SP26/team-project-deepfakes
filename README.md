@@ -8,9 +8,11 @@ https://docs.google.com/presentation/d/1Qx6qtaJVppkF2ot-cQilQW0tkhdxkdwAhq93jt21
 CP 3 Presentation Slides:   
 https://docs.google.com/presentation/d/1GdAlYfoQqglexiiz7_u_sErxAKJcYAJ7XZ4gpf7qvaQ/edit?usp=sharing   
 
-Deployment New Version Website Link:   
+Deployment Website Link:   
 https://willsu42-extended-team-project-deep.vercel.app   
-(based on branch Taxonomy-AI-models, merge will be done after verification)   
+
+---
+
 ### 🚨 Problem Statement:
 
 The democratization of generative AI has led to a surge in Non-Consensual Explicit Imagery (NCEI). Current safety frameworks are reactive, often failing to track the specific "how" behind these attacks. Victims and researchers lack a centralized, structured repository that logs how platform guardrails (like those of X/Grok) are bypassed, the specific "nudify" tools being used, and the legal precedents set in response.
@@ -78,3 +80,27 @@ Owner: Yu-Chen (Will) Su (Frontend/DevOps)
 Milestone 4: Testing & Ethics Review (Week 9): Ensure data privacy and verify classification accuracy.
 
 Owner: All (Collaborative Review)
+
+### Running Locally
+
+```bash
+# 1. Clone and enter the app directory
+git clone https://github.com/IS492-SP26/team-project-deepfakes.git
+cd team-project-deepfakes/Sentinel\ Application
+
+# 2. Set up environment
+cp .env.example .env
+# Edit .env with your ANTHROPIC_API_KEY, GROQ_API_KEY, DETECTION_API_KEY
+
+# 3. Start backend (Terminal 1)
+cd app/backend && python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+uvicorn main:app --reload --port 8000
+
+# 4. Start frontend (Terminal 2)
+cd app/frontend && npm install && npm run dev
+```
+
+Frontend: http://localhost:5173 — Backend API: http://localhost:8000
+
+See [`Sentinel Application/INSTALL.md`](Sentinel%20Application/INSTALL.md) for full setup details.
