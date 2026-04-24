@@ -15,7 +15,7 @@ from routers import analyze, reports, search
 from db import init_db
 from telemetry import setup_logging, log_event
 
-load_dotenv()
+load_dotenv(override=True)
 setup_logging()
 logger = logging.getLogger("sentinel")
 

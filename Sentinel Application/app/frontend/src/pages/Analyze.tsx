@@ -1,7 +1,7 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Link, FileImage, ChevronDown, ChevronUp } from "lucide-react";
+import { Upload, Link, FileImage, ChevronDown, ChevronUp, Cpu } from "lucide-react";
 import api from "../api/client";
 
 const ACCEPTED_TYPES: Record<string, string[]> = {
@@ -75,6 +75,88 @@ function MetadataPanel({ metadata }: { metadata: Record<string, any> }) {
   );
 }
 
+const TAXONOMY_COLORS: Record<string, { bg: string; text: string }> = {
+  AI: { bg: "rgba(0, 200, 255, 0.12)", text: "var(--accent)" },
+  Human: { bg: "rgba(255, 159, 67, 0.12)", text: "var(--orange)" },
+  Intentional: { bg: "rgba(255, 69, 96, 0.12)", text: "var(--red)" },
+  Unintentional: { bg: "rgba(255, 211, 42, 0.12)", text: "var(--yellow)" },
+  "Pre-deployment": { bg: "rgba(160, 120, 255, 0.12)", text: "#a078ff" },
+  "Post-deployment": { bg: "rgba(38, 222, 129, 0.12)", text: "var(--green)" },
+  Other: { bg: "rgba(65, 85, 103, 0.2)", text: "var(--text-secondary)" },
+};
+
+function TaxonomyBadge({ value }: { value: string }) {
+  const colors = TAXONOMY_COLORS[value] ?? TAXONOMY_COLORS.Other;
+  return (
+    <span style={{
+      display: "inline-block",
+      padding: "4px 12px",
+      borderRadius: 6,
+      fontSize: 12,
+      fontWeight: 600,
+      background: colors.bg,
+      color: colors.text,
+      border: `1px solid ${colors.text}22`,
+    }}>
+      {value}
+    </span>
+  );
+}
+
+function TaxonomyPanel({ taxonomy }: { taxonomy: any }) {
+  const conf = Math.round((taxonomy.confidence ?? 0) * 100);
+  return (
+    <div className="card" style={{ marginTop: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <div className="stat-label">MIT Causal Taxonomy</div>
+        {taxonomy.model_used && (
+          <span style={{
+            fontSize: 10, padding: "3px 8px", borderRadius: 4,
+            background: "var(--accent-dim)", color: "var(--accent)",
+            border: "1px solid var(--accent)33", fontFamily: "var(--font-mono)",
+          }}>
+            {taxonomy.model_used}
+          </span>
+        )}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+        <div>
+          <div style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Entity</div>
+          <TaxonomyBadge value={taxonomy.entity} />
+        </div>
+        <div>
+          <div style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Intent</div>
+          <TaxonomyBadge value={taxonomy.intent} />
+        </div>
+        <div>
+          <div style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Timing</div>
+          <TaxonomyBadge value={taxonomy.timing} />
+        </div>
+      </div>
+      {taxonomy.confidence > 0 && (
+        <div style={{ marginTop: 14 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--text-muted)", marginBottom: 4 }}>
+            <span>CLASSIFICATION CONFIDENCE</span>
+            <span style={{ fontFamily: "var(--font-mono)" }}>{conf}%</span>
+          </div>
+          <div style={{ height: 4, borderRadius: 2, background: "var(--border)", overflow: "hidden" }}>
+            <div style={{
+              height: "100%", borderRadius: 2,
+              background: conf >= 75 ? "var(--accent)" : conf >= 50 ? "var(--orange)" : "var(--text-muted)",
+              width: `${conf}%`, transition: "width 0.6s ease",
+            }} />
+          </div>
+        </div>
+      )}
+      {taxonomy.rationale && (
+        <div style={{ marginTop: 10, fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+          {taxonomy.rationale}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function VerdictDisplay({ result }: { result: any }) {
   const VERDICT_COLORS: Record<string, string> = {
     deepfake: "var(--red)",
@@ -133,6 +215,10 @@ function VerdictDisplay({ result }: { result: any }) {
           ))}
         </div>
       )}
+
+      {result.taxonomy && (
+        <TaxonomyPanel taxonomy={result.taxonomy} />
+      )}
     </motion.div>
   );
 }
@@ -144,6 +230,19 @@ export default function Analyze() {
   const [error, setError] = useState<string | null>(null);
   const [url, setUrl] = useState("");
   const [context, setContext] = useState("");
+  const [aiModel, setAiModel] = useState("claude");
+  const [availableModels, setAvailableModels] = useState<any[]>([]);
+
+  useEffect(() => {
+    api.get("/analyze/models").then((res) => {
+      setAvailableModels(res.data.models || []);
+    }).catch(() => {
+      setAvailableModels([
+        { id: "claude", name: "Claude (Anthropic)", available: true },
+        { id: "llama", name: "Llama 3 (Groq)", available: false },
+      ]);
+    });
+  }, []);
 
   const onDrop = useCallback(async (files: File[]) => {
     const file = files[0];
@@ -155,6 +254,7 @@ export default function Analyze() {
     const formData = new FormData();
     formData.append("file", file);
     if (context) formData.append("context", context);
+    formData.append("ai_model", aiModel);
 
     try {
       const res = await api.post("/analyze/file", formData, {
@@ -175,7 +275,7 @@ export default function Analyze() {
     setError(null);
     setResult(null);
     try {
-      const res = await api.post("/analyze/url", { url, context });
+      const res = await api.post("/analyze/url", { url, context, ai_model: aiModel });
       setResult(res.data);
     } catch (e: any) {
       setError(e.response?.data?.detail ?? e.message ?? "Analysis failed");
@@ -249,7 +349,36 @@ export default function Analyze() {
             value={context}
             onChange={(e) => setContext(e.target.value)}
             maxLength={500}
+            style={{ flex: 1 }}
           />
+        </div>
+
+        <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center" }}>
+          <Cpu size={14} style={{ color: "var(--accent)", flexShrink: 0 }} />
+          <span style={{ fontSize: 12, color: "var(--text-muted)", whiteSpace: "nowrap" }}>AI Model:</span>
+          <div style={{ display: "flex", gap: 6 }}>
+            {availableModels.map((m) => (
+              <button
+                key={m.id}
+                onClick={() => m.available && setAiModel(m.id)}
+                disabled={!m.available}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: 6,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  border: aiModel === m.id ? "1px solid var(--accent)" : "1px solid var(--border)",
+                  background: aiModel === m.id ? "var(--accent-dim)" : "transparent",
+                  color: !m.available ? "var(--text-muted)" : aiModel === m.id ? "var(--accent)" : "var(--text-secondary)",
+                  cursor: m.available ? "pointer" : "not-allowed",
+                  opacity: m.available ? 1 : 0.5,
+                  transition: "all 0.2s ease",
+                }}
+              >
+                {m.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         {loading && (

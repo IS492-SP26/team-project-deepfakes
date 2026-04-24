@@ -73,7 +73,22 @@
 }
 ```
 
-### 6. Rate Limit Events
+### 6. Taxonomy Classification Events
+```json
+{
+  "event_type": "taxonomy_classification",
+  "payload": {
+    "analysis_id": "uuid-here",
+    "model_used": "Claude (Anthropic)",
+    "entity": "Human",
+    "intent": "Intentional",
+    "timing": "Post-deployment",
+    "confidence": 0.88
+  }
+}
+```
+
+### 7. Rate Limit Events
 ```json
 {
   "event_type": "rate_limit_hit",
@@ -105,6 +120,11 @@ Stores every completed analysis result for report history and audit.
 | narrative | TEXT | Claude-generated summary |
 | file_hash | TEXT | SHA-256 of file (no filename) |
 | processing_time_ms | INTEGER | End-to-end latency |
+| taxonomy_entity | TEXT | MIT taxonomy: AI / Human / Other |
+| taxonomy_intent | TEXT | MIT taxonomy: Intentional / Unintentional / Other |
+| taxonomy_timing | TEXT | MIT taxonomy: Pre-deployment / Post-deployment / Other |
+| taxonomy_confidence | REAL | AI classification confidence 0.0–1.0 |
+| taxonomy_rationale | TEXT | AI-generated explanation of classification |
 | created_at | TEXT | UTC timestamp |
 
 ### `events` table

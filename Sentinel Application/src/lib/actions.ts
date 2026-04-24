@@ -1,13 +1,32 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { addIncident, approveIncident, type Incident } from "./store";
+import {
+  addIncident,
+  approveIncident,
+  updateIncidentTaxonomy,
+  type Incident,
+  type CausalTaxonomy,
+  type TaxonomyEntity,
+  type TaxonomyIntent,
+  type TaxonomyTiming,
+} from "./store";
+import { classifyTaxonomy } from "./classify-taxonomy";
+
+const FALLBACK_TAXONOMY: CausalTaxonomy = {
+  entity: "Other",
+  intent: "Other",
+  timing: "Other",
+  confidence: 0,
+  rationale: "Automatic classification unavailable. Manual review required.",
+  source: "manual",
+};
 
 function generateId(): string {
   return `STL-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 }
 
-function mockExtraction(rawText: string): Omit<Incident, "rawText" | "status"> {
+function mockExtraction(rawText: string): Omit<Incident, "rawText" | "status" | "taxonomy"> {
   const models = [
     "GPT-4o Jailbreak Variant",
     "Claude Prompt Injection v3",
@@ -53,13 +72,17 @@ export async function runExtraction(formData: FormData) {
     return;
   }
 
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+  const [, taxonomy] = await Promise.all([
+    new Promise((resolve) => setTimeout(resolve, 1500)),
+    classifyTaxonomy(rawText),
+  ]);
 
   const extraction = mockExtraction(rawText);
   const incident: Incident = {
     ...extraction,
     rawText,
     status: "pending",
+    taxonomy: taxonomy ?? FALLBACK_TAXONOMY,
   };
 
   addIncident(incident);
@@ -72,4 +95,16 @@ export async function approveToDatabase(formData: FormData) {
 
   approveIncident(id);
   redirect("/archive");
+}
+
+export async function updateTaxonomy(formData: FormData) {
+  const id = formData.get("incidentId") as string;
+  const entity = formData.get("entity") as TaxonomyEntity;
+  const intent = formData.get("intent") as TaxonomyIntent;
+  const timing = formData.get("timing") as TaxonomyTiming;
+
+  if (!id) return;
+
+  updateIncidentTaxonomy(id, { entity, intent, timing });
+  redirect(`/clinical?id=${id}`);
 }

@@ -18,6 +18,24 @@ function SeverityBadge({ label }: { label: string }) {
   );
 }
 
+const taxonomyColors: Record<string, string> = {
+  AI: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+  Human: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  Intentional: "bg-red-500/10 text-red-400 border-red-500/20",
+  Unintentional: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+  "Pre-deployment": "bg-purple-500/10 text-purple-400 border-purple-500/20",
+  "Post-deployment": "bg-green-500/10 text-green-400 border-green-500/20",
+  Other: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+};
+
+function TaxonomyBadge({ value }: { value: string }) {
+  return (
+    <Badge className={taxonomyColors[value] ?? taxonomyColors.Other}>
+      {value}
+    </Badge>
+  );
+}
+
 export const dynamic = "force-dynamic";
 
 export default function ArchivePage() {
@@ -86,6 +104,15 @@ export default function ArchivePage() {
                     <th className="px-6 py-3 font-medium text-muted-foreground">
                       Timestamp
                     </th>
+                    <th className="px-6 py-3 font-medium text-muted-foreground">
+                      Entity
+                    </th>
+                    <th className="px-6 py-3 font-medium text-muted-foreground">
+                      Intent
+                    </th>
+                    <th className="px-6 py-3 font-medium text-muted-foreground">
+                      Timing
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -111,6 +138,15 @@ export default function ArchivePage() {
                       </td>
                       <td className="px-6 py-3 text-muted-foreground">
                         {new Date(incident.timestamp).toLocaleString()}
+                      </td>
+                      <td className="px-6 py-3">
+                        <TaxonomyBadge value={incident.taxonomy.entity} />
+                      </td>
+                      <td className="px-6 py-3">
+                        <TaxonomyBadge value={incident.taxonomy.intent} />
+                      </td>
+                      <td className="px-6 py-3">
+                        <TaxonomyBadge value={incident.taxonomy.timing} />
                       </td>
                     </tr>
                   ))}

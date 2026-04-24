@@ -19,7 +19,7 @@ async def list_reports(
 ):
     """List all analysis reports with optional filtering."""
     db = get_db()
-    query = "SELECT analysis_id, verdict, confidence, threat_level, created_at FROM analyses WHERE 1=1"
+    query = "SELECT analysis_id, verdict, confidence, threat_level, taxonomy_entity, taxonomy_intent, taxonomy_timing, created_at FROM analyses WHERE 1=1"
     params = []
 
     if verdict:

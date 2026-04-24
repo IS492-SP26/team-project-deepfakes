@@ -143,12 +143,15 @@ export default function Dashboard() {
               <th>Verdict</th>
               <th>Confidence</th>
               <th>Threat Level</th>
+              <th>Entity</th>
+              <th>Intent</th>
+              <th>Timing</th>
               <th>Time</th>
             </tr>
           </thead>
           <tbody>
             {reports.length === 0 ? (
-              <tr><td colSpan={5} style={{ textAlign: "center", color: "var(--text-muted)", padding: "32px 0" }}>
+              <tr><td colSpan={8} style={{ textAlign: "center", color: "var(--text-muted)", padding: "32px 0" }}>
                 No analyses yet — upload a file to get started
               </td></tr>
             ) : reports.map((r) => (
@@ -157,6 +160,9 @@ export default function Dashboard() {
                 <td><span className={`badge badge-${r.verdict}`}>{r.verdict?.replace(/_/g, " ")}</span></td>
                 <td style={{ fontFamily: "var(--font-mono)" }}>{Math.round((r.confidence ?? 0) * 100)}%</td>
                 <td><span className={`badge badge-${r.threat_level}`}>{r.threat_level}</span></td>
+                <td style={{ fontSize: 11 }}>{r.taxonomy_entity || "—"}</td>
+                <td style={{ fontSize: 11 }}>{r.taxonomy_intent || "—"}</td>
+                <td style={{ fontSize: 11 }}>{r.taxonomy_timing || "—"}</td>
                 <td>{new Date(r.created_at).toLocaleTimeString()}</td>
               </tr>
             ))}

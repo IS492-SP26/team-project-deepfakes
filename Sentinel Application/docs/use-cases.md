@@ -109,5 +109,32 @@ Sentinel serves journalists, trust & safety teams, law enforcement, and research
 3. Response includes full `AnalysisResult` JSON
 4. Partner stores `analysis_id` for future retrieval
 
-**Success**: API responds with valid JSON under rate limits  
+**Success**: API responds with valid JSON under rate limits
 **Test**: `tests/unit/test_analyze.py::test_api_rate_limit`
+
+---
+
+## UC-07: MIT Causal Taxonomy Classification
+
+**Actor**: Trust & Safety Analyst / Researcher
+**Goal**: Classify an incident using the MIT AI Risk Repository's Causal Taxonomy to understand the cause, intent, and timing of the threat
+**Precondition**: User has media or a URL to analyze
+
+**Flow**:
+1. Analyst navigates to Analyze page
+2. Selects AI model for classification: **Claude (Anthropic)** or **Llama 3 (Groq)**
+3. Uploads file or submits URL with optional context
+4. System runs detection pipeline, then sends detection results to the selected AI model
+5. AI classifies the incident across 3 MIT taxonomy dimensions:
+   - **Entity**: AI / Human / Other (who caused the risk)
+   - **Intent**: Intentional / Unintentional / Other (was the outcome expected)
+   - **Timing**: Pre-deployment / Post-deployment / Other (when did the risk manifest)
+6. AI returns classification with confidence score (0-1) and rationale (1-2 sentences)
+7. UI displays taxonomy panel with colored badges, confidence bar, rationale text, and model attribution
+8. Taxonomy data is persisted alongside the analysis in the database
+9. Taxonomy columns appear in Dashboard recent analyses and Reports table
+
+**Success**: Taxonomy classification returned with ≥0.7 confidence, matching expected dimensions
+**Edge Case**: AI API unavailable → fallback to "Other/Other/Other" with 0% confidence and "Automatic classification unavailable" message
+**Edge Case**: User switches between Claude and Llama → different models may produce different classifications for the same input
+**Test**: Verify `/api/analyze/models` returns available models; verify taxonomy fields in API response
