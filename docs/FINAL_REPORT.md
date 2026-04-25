@@ -10,7 +10,7 @@
 
 ## Abstract
 
-The democratization of generative AI has catalyzed a surge in Non-Consensual Explicit Imagery (NCEI), yet existing incident-tracking infrastructure remains too broad, too reactive, and too technically shallow to serve the researchers, legal advocates, and platform integrity teams who most need actionable data. This paper presents **Sentinel**, a domain-specific Threat Intelligence Platform that archives NCEI incidents using structured metadata — model version, bypass technique, distribution vector, and legal outcome — rather than free-text news summaries. We describe the problem context, a competitive gap analysis across four existing repositories, our design rationale grounded in three AI-tool prompting experiments, and a formative evaluation employing a moderated think-aloud protocol, the System Usability Scale, UMUX-Lite, and a custom trust-and-satisfaction instrument. Findings reveal a critical "information asymmetry" gap in current tooling, confirm demand for a technical taxonomy among target users, and surface usability friction points around filter discoverability and export affordances. We conclude with design recommendations and a roadmap for production deployment.
+The democratization of generative AI has catalyzed a surge in Non-Consensual Explicit Imagery (NCEI), yet existing incident-tracking infrastructure remains too broad, too reactive, and too technically shallow to serve the researchers, legal advocates, and platform integrity teams who most need actionable data. This paper presents **Sentinel**, a domain-specific Threat Intelligence Platform that enables analysts to submit media files or URLs for automated deepfake detection, MIT Causal Taxonomy classification, and threat enrichment — producing structured, machine-readable incident records rather than free-text summaries. We describe the problem context, a competitive gap analysis across four existing repositories, our design rationale grounded in three AI-tool prompting experiments, and a formative evaluation employing a moderated think-aloud protocol, the System Usability Scale, UMUX-Lite, and a custom trust-and-satisfaction instrument. Findings reveal a critical "information asymmetry" gap in current tooling, confirm demand for a technical taxonomy among target users, and surface usability friction points around filter discoverability and export affordances. We conclude with design recommendations and a roadmap for production deployment.
 
 ---
 
@@ -56,34 +56,39 @@ Mapping the existing ecosystem reveals a consistent pattern: tools either serve 
 
 Sentinel's architecture was shaped by three design principles derived from our literature review and competitive analysis:
 
-1. **Structured Metadata over Free Text.** Instead of prose descriptions ("a deepfake happened"), Sentinel logs machine-readable fields: `model_id` (e.g., Stable Diffusion XL 1.0, Flux.1), `method` (e.g., LoRA fine-tuning, DreamBooth, inpainting), `vector` (e.g., Telegram bot, X/Twitter, web scraper), `platform_failure_type` (e.g., prompt injection bypass, safety filter evasion), `takedown_time_hours`, and `legal_outcome`.
+1. **Structured Metadata over Free Text.** Instead of prose descriptions ("a deepfake happened"), Sentinel produces machine-readable incident records: detection verdict (deepfake / suspected_deepfake / inconclusive / authentic), confidence score, threat level, EXIF-derived media metadata, VirusTotal hash reputation, MITRE ATT&CK technique tags, and a three-dimension MIT Causal Taxonomy classification (Entity, Intent, Timing).
 
-2. **Automated Ingestion with Human-in-the-Loop Verification.** A Python scraper pipeline (BeautifulSoup, Scrapy) monitors news APIs and security blogs. A Llama 3 language model extracts structured metadata from raw text and populates JSON records. A human verification layer reviews AI-extracted metadata before database commit, addressing the hallucination risk identified in our prompting experiments (see §4.2).
+2. **Analyst-Driven Submission with AI-Assisted Classification.** Rather than relying solely on automated scraping, Sentinel is designed for analyst-driven workflows: a user submits a media file or URL, the backend runs a four-stage pipeline (Hive Moderation API detection → metadata extraction → threat enrichment → AI classification), and the results are returned within seconds. Claude Sonnet 4 and Llama 3.3-70b serve as dual-provider AI backends; users select the model at submission time. The AI classification confidence score and rationale are surfaced alongside every result, supporting human review of borderline cases.
 
-3. **Domain-Specific Safety Logic.** Commercial AI tools apply broad content safety filters that block legitimate forensic research queries (see §4.2, Case 3). Sentinel's intelligence layer uses a Llama 3 instance configured for clinical research contexts, allowing extraction of technical attack mechanics without the safety over-correction that makes general-purpose tools unusable for threat intelligence work.
+3. **Domain-Specific Safety Logic.** Commercial AI tools apply broad content safety filters that block legitimate forensic research queries (see §4.2, Case 3). Sentinel's intelligence layer uses AI models prompted in a forensic research context, allowing classification of technical attack mechanics without the safety over-correction that makes general-purpose tools unusable for threat intelligence work.
 
 ### 3.2 Technical Architecture
 
+The implemented system follows a three-tier web architecture: a React/Vite single-page frontend, a FastAPI REST backend, and a SQLite/PostgreSQL database, with four external AI and intelligence APIs integrated at the backend layer.
+
 | Layer | Technology | Role |
 |---|---|---|
-| Data Acquisition | Python (BeautifulSoup, Scrapy) | Monitor news APIs, security blogs, court records |
-| Intelligence Layer | Llama 3 (API) | Extract structured metadata → JSON |
-| Verification | Human-in-the-loop editor UI | Review and correct AI extraction |
-| Storage | PostgreSQL | Relational schema: incidents, methods, vectors, legal_precedents |
-| Frontend | React (TypeScript) + Vite | Searchable dashboard, Incident Feed, Clinical View |
-| Deployment | Vercel (frontend), FastAPI/uvicorn (backend) | Live at willsu42-extended-team-project-deep.vercel.app |
+| Frontend | React 19 (TypeScript) + Vite | Three-page SPA: Dashboard (live stats), Analyze (submission), Reports (search/export); deployed to Vercel |
+| Backend | FastAPI + uvicorn (Python 3.12) | REST API with three route groups: `/api/analyze`, `/api/reports`, `/api/search` |
+| Deepfake Detection | Hive Moderation API | Primary detection engine; scores submitted media on a 0–1 deepfake confidence scale; maps scores to verdict (deepfake / suspected_deepfake / inconclusive / authentic) and threat level (critical / high / medium / low) |
+| AI Analysis | Anthropic Claude Sonnet 4 / Groq Llama 3.3-70b | Dual-provider: classifies each incident using the MIT Causal Taxonomy (Entity × Intent × Timing) and generates a 2–3 sentence analyst narrative with a recommended action |
+| Threat Enrichment | VirusTotal · Google Safe Browsing · MITRE ATT&CK | File hash reputation lookup (VirusTotal), URL reputation check (Safe Browsing), and attack-technique tagging (T1566 Phishing, T1565.001 Stored Data Manipulation) |
+| Storage | SQLite (development) / PostgreSQL (production) | `analyses` table (16 fields including all taxonomy columns); `events` table for request telemetry; `rate_limits` table for per-IP throttling |
+| Deployment | Vercel (frontend) · uvicorn (backend) | Frontend: willsu42-extended-team-project-deep.vercel.app; backend deployable via Render or Railway |
 
-The database schema is organized into four primary categories: **Platform Failures** (documenting guardrail bypasses), **Targeted Extortion** (documenting individual victim attacks), **Mass Scale Events** (documenting coordinated distribution), and **Legal Precedents** (logging case outcomes, takedown times, and statutory references).
+**Submission pipeline.** A user submits content through one of two paths: direct file upload (image, video, or audio, up to 50 MB) or URL submission. The backend assigns a UUID `analysis_id` and SHA-256 `file_hash`, then runs a four-stage pipeline sequentially: (1) Hive Moderation API detection produces a deepfake confidence score; (2) media metadata extraction reads resolution, format, and EXIF data via PIL for images and mutagen for audio, with GPS and device-serial EXIF fields stripped before storage; (3) threat enrichment queries VirusTotal for the file hash, Google Safe Browsing for any associated URL, and maps findings to MITRE ATT&CK techniques; and (4) the selected AI provider (Claude Sonnet 4 or Llama 3.3-70b) produces both the MIT Causal Taxonomy classification and a short analyst narrative. The completed `AnalysisResult` is returned synchronously; the database write is handled by a background task to avoid adding latency to the response.
 
-The **Clinical View** feature — added after our prompting experiments revealed that AI-extracted metadata often requires comparison with the original source document to catch errors — presents the raw news article alongside the extracted structured record, allowing researchers to identify and flag hallucinated fields.
+**MIT Causal Taxonomy classification.** Each incident is classified across three dimensions: **Entity** (AI | Human | Other — who produced the content), **Intent** (Intentional | Unintentional | Other — whether deception was purposeful), and **Timing** (Pre-deployment | Post-deployment | Other — at which stage of the AI lifecycle the harm was introduced). The model receives detection scores, extracted media metadata, and enrichment signals as context, and returns a structured JSON object containing the three taxonomy labels, a confidence score (0–1), and a natural-language rationale. A deterministic fallback classification is applied when the AI call fails or times out.
+
+**Database schema.** The `analyses` table persists 16 fields per record: detection verdict and confidence score, threat level, JSON-serialized metadata and enrichment objects, the AI-generated narrative, SHA-256 file hash (used for deduplication via `INSERT OR REPLACE`), processing latency in milliseconds, the three MIT Causal Taxonomy labels, taxonomy confidence, taxonomy rationale, and a UTC creation timestamp. Deduplication by file hash ensures that identical media submitted multiple times updates an existing record rather than creating duplicates.
 
 ### 3.3 Key Features
 
-- **Global Incident Archive** with full-text search and multi-axis filtering (model, attack vector, platform, date range, severity)
-- **Real-Time Incident Feed** surfacing newly scraped and verified incidents
-- **Structured Metadata Cards** displaying all seven taxonomy fields per incident
-- **Legal Precedents Index** tracking TAKE IT DOWN Act enforcement, the DEFIANCE Act, and state-level case outcomes
-- **Metadata Editor** for human-in-the-loop correction and confidence scoring
+- **Dashboard** displaying live statistics across all submitted analyses: verdict distribution (deepfake / suspected_deepfake / inconclusive / authentic), threat level breakdown (critical / high / medium / low), and a table of the most recent submissions
+- **Analyze** — the primary submission interface, supporting file upload (image, video, audio up to 50 MB) or URL input, with a choice of AI backend (Claude Sonnet 4 or Llama 3.3-70b); results display a confidence ring, verdict badge, AI-generated analyst narrative, MITRE ATT&CK technique tags, and MIT Causal Taxonomy badges (Entity, Intent, Timing) with a confidence bar
+- **Reports** — a searchable, filterable log of all past analyses, filterable by verdict and threat level, with per-report JSON export
+- **MIT Causal Taxonomy classification** on every incident: three-dimensional structured label (Entity × Intent × Timing), AI confidence score (0–1), and natural-language rationale, enabling systematic comparison across submissions
+- **Dual AI provider support** — analysts can select Claude Sonnet 4 (Anthropic) or Llama 3.3-70b (Groq) at submission time, supporting comparison of model outputs and continuity if one provider is unavailable
 
 ---
 
@@ -186,7 +191,7 @@ Three participants noted the subject matter was heavier than they had anticipate
 
 The results confirm the project's core thesis while identifying a specific design maturity gap. Sentinel successfully communicates its unique value — participants consistently recognized it as something that does not exist elsewhere (USE1: 5.6/7) and valued the structured taxonomy (USE2: 5.8/7). The prompting experiments independently validated the competitive gap: general-purpose AI tools cannot reliably produce the technical specificity Sentinel's taxonomy requires, and commercial safety filters actively block the forensic queries that Sentinel is designed to answer.
 
-However, the gap between perceived usefulness and achieved usability (SUS: 63.2) reflects a common challenge in expert-tool design: building a system that domain specialists conceptually want but that is not yet ergonomic enough for efficient professional use. The three worst-performing tasks — legal precedent lookup (T5: 57%), frequency analysis (T6: 43%), and export (T7: 29%) — map precisely onto the three features that require the most interface development work: a navigable legal index, aggregation analytics, and a data export pipeline.
+However, the gap between perceived usefulness and achieved usability (SUS: 63.2) reflects a common challenge in expert-tool design: building a system that domain specialists conceptually want but that is not yet ergonomic enough for efficient professional use. The three worst-performing tasks — legal precedent lookup (T5: 57%), frequency analysis (T6: 43%), and export (T7: 29%) — are partly explained by the prototype's current feature scope: T5 directed participants to a dedicated legal index that does not yet exist as a discrete interface section, and T6 required cross-incident frequency aggregation that the current Reports page does not surface. These low scores therefore reflect both interface friction and feature completeness gaps, and map onto the highest-priority items in the Version 2.0 roadmap (§7).
 
 The trust findings deserve particular attention. TR2 (professional use willingness: 4.4/7) is the most consequential metric for Sentinel's mission: a tool designed to inform legal briefs, platform policy, and security research must be trusted by practitioners in those fields. The path to improving TR2 runs through data provenance transparency — specifically, surfacing confidence scores, source citations, and the human-verification status on every incident card, not just in the Clinical View.
 
@@ -200,7 +205,7 @@ Our formative study was conducted with seven participants, all recruited from an
 
 ### 6.2 System Limitations
 
-The automated ingestion pipeline depends on news coverage and publicly accessible sources. Incidents that do not generate news coverage — which may include the majority of non-celebrity targeted extortion cases — are systematically underrepresented. The LLM extraction layer (Llama 3) produces hallucinations at a rate that requires human verification for every record; our CP2 experiments showed Perplexity mislabeling a "Flux" incident as "Stable Diffusion," a category error that would corrupt downstream threat analysis. The current human-in-the-loop verification process does not scale to the volume of incidents the automated pipeline is capable of ingesting.
+Sentinel's current implementation depends on analyst-initiated submission: incidents that are not actively surfaced and submitted by a researcher are not captured. This creates a systematic coverage gap for non-celebrity targeted extortion cases, which rarely generate the news coverage or researcher attention needed to enter the system. The AI classification layer (Claude Sonnet 4 / Llama 3.3-70b) can produce inaccurate taxonomy labels — particularly for borderline verdicts — at a rate that warrants human review of every result before the record is treated as authoritative. As our prompting experiments demonstrated (§4.2, Case 2), even well-resourced AI tools struggle to distinguish base-model from fine-tuned-model attribution from open-source evidence alone; Sentinel's classification faces the same constraint. The confidence score and rationale fields are designed to support this review, but they require further UI development to be consistently actionable.
 
 ### 6.3 Risk Assessment
 
@@ -216,7 +221,7 @@ The automated ingestion pipeline depends on news coverage and publicly accessibl
 
 **Content Ethics.** Sentinel occupies a difficult ethical position: it documents harm in detail to enable harm prevention. This is the same logic that underlies CVE databases in cybersecurity, forensic pathology, and epidemiological surveillance — all of which involve structured documentation of harmful events to enable systemic response. We hold that the expected harm-reduction benefit of enabling researchers, legislators, and platform integrity teams to respond more precisely to NCEI threats outweighs the dual-use risk, provided that access controls and data privacy protections are in place.
 
-**AI System Ethics.** The use of Llama 3 in a configuration that bypasses commercial safety filters for forensic research purposes requires careful institutional governance. The current prototype uses this configuration without access controls; production deployment must restrict this layer to verified, credentialed researchers.
+**AI System Ethics.** The use of AI models prompted in a forensic research context — in a configuration that may produce outputs blocked by standard commercial safety filters — requires careful institutional governance. The current prototype does not implement access controls on the AI classification layer; production deployment must restrict this capability to verified, credentialed researchers.
 
 ---
 
@@ -393,11 +398,13 @@ Full study protocol, consent form, moderator briefing script, and observation te
 
 *Note: Screenshots reference the live deployment at https://willsu42-extended-team-project-deep.vercel.app*
 
-- **E.1** Global Incident Archive — search bar and results grid
-- **E.2** Incident Card — structured metadata fields (model, method, vector, takedown time)
-- **E.3** Clinical View — raw article alongside AI-extracted metadata
-- **E.4** Incident Feed — real-time newly verified incidents
-- **E.5** Legal Precedents Index — TAKE IT DOWN Act cases
+- **E.1** Dashboard — verdict distribution chart, threat level breakdown, and recent analyses table
+- **E.2** Analyze page — file upload / URL submission form with AI model selector
+- **E.3** Analysis result — confidence ring, verdict badge, analyst narrative, MITRE ATT&CK tags
+- **E.4** MIT Causal Taxonomy panel — Entity / Intent / Timing badges with confidence bar and rationale
+- **E.5** Reports page — searchable analysis history with verdict/threat-level filters and JSON export
+
+*Screenshots to be captured from the live deployment and inserted here prior to final submission.*
 
 *Screenshots to be captured from the live deployment and inserted here prior to final submission.*
 
