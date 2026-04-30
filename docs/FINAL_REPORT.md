@@ -121,7 +121,7 @@ During internal speed-dating sessions, a team member manually extracted incident
 
 Following checkpoint validation, we conducted a formative think-aloud usability study with the live Sentinel deployment.
 
-**Participants.** We recruited seven participants across three user segments: safety/AI researchers (n=3), IS and CS students with trust-and-safety or policy backgrounds (n=3), and one law student with a focus on technology policy (n=1). No participant had prior exposure to the Sentinel prototype.
+**Participants.** We recruited seven participants across three user segments: AI/DS-students (n=3), IS and CS students with trust-and-safety or policy backgrounds (n=3), and one law student with a focus on technology policy (n=1). No participant had prior exposure to the Sentinel prototype.
 
 **Procedure.** Each session (~55 minutes) followed the protocol developed for this project:
 1. Briefing and consent (5 min)
