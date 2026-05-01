@@ -390,7 +390,7 @@ Full study protocol, consent form, moderator briefing script, and observation te
 
 **Session structure:** Briefing/consent (5 min) → Cold-start orientation (3 min) → Think-aloud tasks T1–T7 (25–30 min) → SUS + UMUX-Lite + Trust/SAT survey (10 min) → Semi-structured debrief interview (10 min).
 
-**Participants:** N=7; 3 safety/AI researchers, 3 IS/CS students with trust-and-safety backgrounds, 1 technology law student. Mean session duration: 54 minutes.
+**Participants:** N=7; 3 DS/AI students, 3 IS/CS students with trust-and-safety backgrounds, 1 technology law student. Mean session duration: About 55 minutes.
 
 ---
 
